@@ -1,12 +1,3 @@
-/**
-CS585_Assignment4.cpp
-@author:
-@version:
-
-CS585 Image and Video Computing Fall 2014
-Assignment 4: BATS
-*/
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -16,7 +7,7 @@ Assignment 4: BATS
 #include <vector>
 #include "math.h"
 
-#include "Ctracker.h"
+#include "Tracker.h"
 
 using namespace cv;
 using namespace std;
@@ -57,12 +48,15 @@ int main()
     //vector<Point> bat_one;
 
     Mat labelled, binary;
-    Mat frame;
+    Mat frame, frameOld;
 
-    CTracker tracker(0.2,0.5,60.0,10,10);
+    Tracker tracker(0.2,0.5,60.0,10,10);
     Scalar Colors[]={Scalar(255,0,0),Scalar(0,255,0),Scalar(0,0,255),Scalar(255,255,0),Scalar(0,255,255),Scalar(255,0,255),Scalar(255,127,255),Scalar(127,0,255),Scalar(127,0,127)};
 
     frame = Mat::zeros(Size(1024,1024),CV_8UC3);
+
+    //VideoWriter vid("bat_original.avi",CV_FOURCC('D','I','V','X'),20,Size(1024,1024),true);
+
     for (int i=0; i < iter; i++) {
         centroids.clear();
         string file_seg, file_loc;
@@ -76,8 +70,9 @@ int main()
         file_loc.append(ini_loc); file_loc.append(num1); file_loc.append(fin);
 
         convertFileToMat(file_seg, labelled, binary);
-        //Mat binary3C;
-        //cvtColor(binary,binary3C, CV_GRAY2BGR);
+        //imshow("Bats",binary);
+        Mat binary3C;
+        cvtColor(binary,binary3C, CV_GRAY2BGR);
         //drawObjectDetections(filename_det1, binary3C, Scalar(255,0,0));
         getCentroid(file_loc,centroids);
 
@@ -87,11 +82,16 @@ int main()
             centers.push_back(centroids[i].coords);
         }
 
+        //if (i==0) frameOld = Mat::zeros(Size(1024,1024),CV_8UC3);
+        //else frameOld = binary3C;
+
         if(centers.size()>0)
         {
             tracker.Update(centers);
 
             cout << tracker.tracks.size()  << endl;
+
+            add(frame,binary3C,frame);
 
             for(int i=0;i<tracker.tracks.size();i++)
             {
@@ -103,9 +103,15 @@ int main()
                     }
                 }
             }
+
+            //frame = frame - frameOld;
+            //frameOld = frame;
         }
+        //frameOld = frame;
 
         imshow("Video",frame);
+        //vid.write(binary3C);
+        frame = frame - binary3C;
         waitKey(20);
 
         /*
