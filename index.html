@@ -50,7 +50,6 @@ In previous assignments, we have demonstrated the problems and solutions to iden
         <li>Occlusion: Bats fly in front of each other, occlusing the image and temporarily sharing a centroid.</li>
         <li>Entering and exiting bats: Bats fly in and out of the frame, as well as flying in the z-axis so that they become segmented.</li>
         <li>Spurious detection: There are times where there are spurious objects detected by the segemntation algorithm that should not be tracked.</li>
-        <li>In terms of code implementation, challenges arised when creating our video, as this was hard in a Windows machine, but fairly easy in a Linux machine. Another challenge was the implementation of our connected components code, due to time constrains we weren't able to develop an efficient piece of code for this (although our algorithm ran fairly well and fast).</li>
     </ul>
     <!--
     <li>Assumptions</li>
@@ -66,7 +65,7 @@ In previous assignments, we have demonstrated the problems and solutions to iden
 <h2> Method and Implementation </h2>
 
 <p>We initially implemented the alpha-beta filter to predict the location of the bats, and used a greedy algorthim to assign predictions to found centroids in the next frame. We were able to create a work-around for occlusion; if no centroids were found in a given radius, we allowed the tracked bat to use a centroid already taken previously by the greedy algorithm (because when bats are occluded, they temporarily share a centroid). To adjust for bats exiting the screen, if the projected x or y value was outside the size of the picture, we stopped tracking that centroid. For any centroids not previously tracked by bats, we created a new bat-tracking structure for it. This implementation had limited success, confined to regions where the bats were sufficiently far apart (the top).</p>
-<p>The results of greedy/alpha-beta left much to be desired, so we started implementing a more sophisticated method: the Kalman Filter with Hungarian assignments. TODO - how this deals with occlusion/spurios/enter-exit
+<p>The results of greedy/alpha-beta left much to be desired, so we started implementing a more sophisticated method: the Kalman Filter with Hungarian assignments. The Hungarian algorithm is designed to deal with too many/too few bats when the matrix isn't NxN; if there are too few bats, we start tracking the new centroids. If there are too many bats, we first consider occlusion; if the point reappears according to what the Kalman Filter predicts, we jump there. If this does not happen within 10 frames, we consider the bat lost and stop tracking it.
 </p>
 
 
@@ -89,13 +88,13 @@ Our initial experiment involved tracking the bats with greedy/alpha-beta, follow
     </tr>
     <tr>
         <td><div align="center">
-            <iframe width="420" height="315" src="https://www.youtube.com/embed/dMMPcqAKGGw" frameborder="0" allowfullscreen></iframe>
+<iframe width="420" height="315" src="https://www.youtube.com/embed/kvyncQ2jHPU" frameborder="0" allowfullscreen></iframe>
         </div></td>
         <td><div align="center">
-            <iframe width="420" height="315" src="https://www.youtube.com/embed/3mJvyBN0b5k" frameborder="0" allowfullscreen></iframe>
+<iframe width="420" height="315" src="https://www.youtube.com/embed/ahcEHqVxHFU" frameborder="0" allowfullscreen></iframe>
         </div></td>
         <td><div align="center">
-            <iframe width="420" height="315" src="https://www.youtube.com/embed/ZAAEebXXsN8" frameborder="0" allowfullscreen></iframe>
+<iframe width="420" height="315" src="https://www.youtube.com/embed/w9mQGjM5TmI" frameborder="0" allowfullscreen></iframe>
         </div></td>
     </tr>
    </table>
@@ -105,31 +104,26 @@ Our initial experiment involved tracking the bats with greedy/alpha-beta, follow
 <h2> Discussion </h2>
 
 <p>
-The greedy algorthim with an alpha-beta filter had some moderate success. Bats we tracked to a degree, especially in areas where there weren't interfering bats. The issues with this approach are self-evident, and due to the greedy/non-optimal nature of the algorithm.
+The greedy algorthim with an alpha-beta filter had some moderate success. Bats we tracked to a degree, especially in areas where there weren't interfering bats. The issues with this approach are self-evident, and due to the greedy/non-optimal nature of the algorithm. The greedy algorithm is especially in problematic in areas where bats are clustered because if the greedy algorithm takes the wrong centroid early-on, it causes a cascade of wrongly tracked centroids.
 </p>
 <p>
-The Hungarian algorithm with a Kalman filter proved more successful, with much smoother and reliable tracks. Althoguh it failed to TODO, it was a successful attempt.
+The Hungarian algorithm with a Kalman filter proved more successful, with much smoother and reliable tracks. It fails to re-track bats after occlusion in at least one case, but is very successful otherwise. One minor problem is the way we trace the bats has a bug where is a bat flies over the path it is erased, but that is not a problem with the algorithm.
 </p>
 <hr>
 <h2> Conclusions </h2>
 
 <p>
-Our results demonstrate the pros and cons of various existing methods in object tracking. The greedy algorithm, though much easier to implement, was less effective at assigning the bats. The Hungarian algorithm, partnered with the Kalman filter produced strong results. An area for further research would be implementing multiple hypothesis tracking.
+Our results demonstrate the pros and cons of various existing methods in object tracking. The greedy algorithm, though much easier to implement, was less effective at assigning the bats. The Hungarian algorithm, partnered with the Kalman filter produced strong results. Although we found it suffiecient to use the Kalman filter with only the past data point, an area for further research would be implementing multiple hypothesis tracking.
 </p>
 
 
 <hr>
 <h2> Credits and Bibliography </h2>
-<!--
- <p>
- 
- OpenCV template matching: <a href="http://docs.opencv.org/doc/tutorials/imgproc/histograms/template_matching/template_matching.html">http://docs.opencv.org/doc/tutorials/imgproc/his
- tograms/template_matching/template_matching.html</a> 9/23/15
- 
- </p>
- -->
 <p>
-OpenCV statistics: http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours">  </a>10/7/15
+Hungarian algorithm reference: https://github.com/Smorodov/Multitarget-tracker <a href="https://github.com/Smorodov/Multitarget-tracker">  </a>10/26/15
+</p>
+<p>
+OpenCV Kalman filter: http://docs.opencv.org/master/dd/d6a/classcv_1_1KalmanFilter.html#gsc.tab=0 <a href="http://docs.opencv.org/master/dd/d6a/classcv_1_1KalmanFilter.html#gsc.tab=0">  </a>10/26/15
 </p>
 <p>
 Segmented videos provided in the assignment
