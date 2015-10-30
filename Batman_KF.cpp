@@ -152,7 +152,7 @@ void convertFileToMat(String filename, Mat& labelled, Mat& binary)
     ifstream infile(filename.c_str());
     vector <vector <int> > data;
     if (!infile){
-        cout << "Error reading file!";
+        cout << "Error reading file!\t" << filename << "\n";
         return;
     }
 
